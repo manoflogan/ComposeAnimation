@@ -179,7 +179,7 @@ fun Home() {
     val lazyListState = rememberLazyListState()
 
     // The background color. The value is changed by the current tab.
-    val backgroundColor = if (tabPage == TabPage.Home) Purple100 else Green300
+    val backgroundColor by animateColorAsState(targetValue = if (tabPage == TabPage.Home) Purple100 else Green300 )
 
     // The coroutine scope for event handlers calling suspend functions.
     val coroutineScope = rememberCoroutineScope()
@@ -188,7 +188,9 @@ fun Home() {
             HomeTabBar(
                 backgroundColor = backgroundColor,
                 tabPage = tabPage,
-                onTabSelected = { tabPage = it }
+                onTabSelected = {
+                    tabPage = it
+                }
             )
         },
         backgroundColor = backgroundColor,
