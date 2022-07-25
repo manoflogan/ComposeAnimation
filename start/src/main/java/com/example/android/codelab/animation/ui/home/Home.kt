@@ -16,6 +16,7 @@
 
 package com.example.android.codelab.animation.ui.home
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColor
@@ -293,8 +294,7 @@ private fun HomeFloatingActionButton(
                 contentDescription = null
             )
             // Toggle the visibility of the content with animation.
-            // TODO 2-1: Animate this visibility change.
-            if (extended) {
+            AnimatedVisibility(visible = extended) {
                 Text(
                     text = stringResource(R.string.edit),
                     modifier = Modifier
@@ -311,10 +311,16 @@ private fun HomeFloatingActionButton(
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun EditMessage(shown: Boolean) {
-    // TODO 2-2: The message should slide down from the top on appearance and slide up on
-    //           disappearance.
     AnimatedVisibility(
-        visible = shown
+        visible = shown,
+        enter = slideInVertically(
+            // Enters by sliding down from offset -fullHeight to 0.
+           initialOffsetY = { fullHeight ->  -fullHeight }
+        ),
+        // Exits by sliding up from offset 0 to -fullHeight.
+        exit = slideOutVertically(
+            targetOffsetY = { fullHeight ->  - fullHeight }
+        )
     ) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
