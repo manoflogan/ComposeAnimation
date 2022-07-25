@@ -24,6 +24,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
@@ -315,11 +316,13 @@ private fun EditMessage(shown: Boolean) {
         visible = shown,
         enter = slideInVertically(
             // Enters by sliding down from offset -fullHeight to 0.
-           initialOffsetY = { fullHeight ->  -fullHeight }
+            initialOffsetY = { fullHeight ->  -fullHeight },
+            animationSpec = tween(durationMillis = 150, easing = LinearOutSlowInEasing)
         ),
         // Exits by sliding up from offset 0 to -fullHeight.
         exit = slideOutVertically(
-            targetOffsetY = { fullHeight ->  - fullHeight }
+            targetOffsetY = { fullHeight ->  - fullHeight },
+            animationSpec = tween(durationMillis = 250, easing = FastOutLinearInEasing)
         )
     ) {
         Surface(
