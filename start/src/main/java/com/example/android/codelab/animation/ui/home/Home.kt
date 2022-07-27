@@ -397,6 +397,9 @@ private fun TopicRow(topic: String, expanded: Boolean, onClick: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
+                .animateContentSize(
+                    animationSpec = tween(150, easing = FastOutLinearInEasing)
+                )
         ) {
             Row {
                 Icon(
