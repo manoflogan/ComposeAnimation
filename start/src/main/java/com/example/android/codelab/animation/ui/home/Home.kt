@@ -95,6 +95,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -263,7 +264,9 @@ fun Home() {
                     key(task) {
                         TaskRow(
                             task = task,
-                            onRemove = { tasks.remove(task) }
+                            onRemove = {
+                                tasks.remove(task)
+                            }
                         )
                     }
                 }
@@ -393,7 +396,6 @@ private fun TopicRow(topic: String, expanded: Boolean, onClick: () -> Unit) {
         elevation = 2.dp,
         onClick = onClick
     ) {
-        // TODO 3: Animate the size change of the content.
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -677,7 +679,8 @@ private fun TaskRow(task: String, onRemove: () -> Unit) {
 private fun Modifier.swipeToDismiss(
     onDismissed: () -> Unit
 ): Modifier = composed {
-    // TODO 6-1: Create an Animatable instance for the offset of the swiped element.
+    // Create an Animatable instance for the offset of the swiped element.
+    val swipe = remember { Animatable(0f) }
     pointerInput(Unit) {
         // Used to calculate a settling position of a fling animation.
         val decay = splineBasedDecay<Float>(this)
@@ -686,13 +689,20 @@ private fun Modifier.swipeToDismiss(
             while (true) {
                 // Wait for a touch down event.
                 val pointerId = awaitPointerEventScope { awaitFirstDown().id }
-                // TODO 6-2: Touch detected; the animation should be stopped.
+                // Touch detected; the animation should be stopped.
+                swipe.stop()
                 // Prepare for drag events and record velocity of a fling.
                 val velocityTracker = VelocityTracker()
                 // Wait for drag events.
                 awaitPointerEventScope {
                     horizontalDrag(pointerId) { change ->
                         // TODO 6-3: Apply the drag change to the Animatable offset.
+                        // Get the drag amount to offset the item width
+                        val horizontalDragOffset = swipe.value + change.positionChange().x
+                        launch {
+                            swipe.snapTo(horizontalDragOffset)
+                        }
+
                         // Record the velocity of the drag.
                         velocityTracker.addPosition(change.uptimeMillis, change.position)
                         // Consume the gesture event, not passed to external
@@ -701,20 +711,29 @@ private fun Modifier.swipeToDismiss(
                 }
                 // Dragging finished. Calculate the velocity of the fling.
                 val velocity = velocityTracker.calculateVelocity().x
-                // TODO 6-4: Calculate the eventual position where the fling should settle
-                //           based on the current offset value and velocity
-                // TODO 6-5: Set the upper and lower bounds so that the animation stops when it
+                // Calculate the target value offset from the swipe value and target value
+                val targetOffsetX = decay.calculateTargetValue(swipe.value, velocity)
+                // calculate where it would end up with
+                //// the current velocity and position
+                // Set the upper and lower bounds so that the animation stops when it
                 //           reaches the edge.
+                swipe.updateBounds(-size.width.toFloat(), size.width.toFloat())
                 launch {
-                    // TODO 6-6: Slide back the element if the settling position does not go beyond
-                    //           the size of the element. Remove the element if it does.
+                    //  Slide back the element if the settling position does not go beyond
+                    //  the size of the element. Remove the element if it does.
+                    if (targetOffsetX < size.width) {
+                        swipe.animateTo(0F, initialVelocity = velocity)
+                    } else {
+                        swipe.animateDecay(velocity, decay)
+                        onDismissed()
+                    }
                 }
             }
         }
     }
         .offset {
             // TODO 6-7: Use the animating offset value here.
-            IntOffset(0, 0)
+            IntOffset(swipe.value.toInt(), 0)
         }
 }
 
